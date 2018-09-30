@@ -1,8 +1,8 @@
-// Package logging 日志的统一封装
+// Package logging 日志的统一封装,这个只是应急用的简单封装可能存在性能或者其他问题，后期继续改进.
 package logging
 
 import (
-	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -10,6 +10,11 @@ import (
 
 //Log 供外部使用的全局日志变量
 var Log *Logging
+
+//默认的日志全局日志输出
+func init() {
+	Log = NewLogger()
+}
 
 // Loger 日志接口 如果要对日志进行扩展都应该遵循这个接口
 type Loger interface {
@@ -39,20 +44,20 @@ type Logging struct {
 type LogLevel uint8
 
 const (
-	// All 全部日志
-	All LogLevel = iota
-	// Debug 调试日志
-	Debug
-	// Info 运行信息
-	Info
-	// Warning 需要特别注意的信息
-	Warning
-	// Err 错误日志
-	Err
-	// Fatal 致命的错误日志
-	Fatal
-	// Non 不打印任何日志
-	Non
+	// LevelAll 全部日志
+	LevelAll LogLevel = iota
+	// LevelDebug 调试日志
+	LevelDebug
+	// LevelInfo 运行信息
+	LevelInfo
+	//LevelWarning 需要特别注意的信息
+	LevelWarning
+	// LevelErr 错误日志
+	LevelErr
+	// LevelFatal 致命的错误日志
+	LevelFatal
+	// LevelNon 不打印任何日志
+	LevelNon
 )
 
 // Options 日志选项
@@ -85,7 +90,7 @@ func NewLogger(opt ...Option) *Logging {
 		o(opts)
 	}
 	if opts.logLevel == 0 {
-		opts.logLevel = Debug
+		opts.logLevel = LevelDebug
 	}
 	if opts.output == nil {
 		opts.output = os.Stdout
@@ -100,59 +105,54 @@ func NewLogger(opt ...Option) *Logging {
 	}
 	return &log
 }
+
+// 设置日志格式
 func logFormat(out io.Writer, prex string) *log.Logger {
 	return log.New(out, prex, log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-// SetLogOutput 设置日志输出
-func SetLogOutput(w io.Writer, lv LogLevel) error {
-	if Log == nil {
-		return errors.New("日志模块未初始化")
-	}
-	Log.debug.SetOutput(w)
-	Log.info.SetOutput(w)
-	Log.warning.SetOutput(w)
-	Log.err.SetOutput(w)
-	Log.fatal.SetOutput(w)
-	return nil
-}
-
 //Debug 打印调试日志
 func (l *Logging) Debug(args ...interface{}) {
-	if l.logLevel > Debug || l.logLevel == Non {
+	if l.logLevel > LevelDebug || l.logLevel == LevelNon {
 		return
 	}
-	l.debug.Println(args...)
+	l.debug.Output(3, format(args...))
 }
 
 //Info 打印提示信息日志
 func (l *Logging) Info(args ...interface{}) {
-	if l.logLevel > Info || l.logLevel == Non {
+	if l.logLevel > LevelInfo || l.logLevel == LevelNon {
 		return
 	}
-	l.info.Println(args...)
+	l.info.Output(3, format(args...))
 }
 
 //Warning 打印错误日志
 func (l *Logging) Warning(args ...interface{}) {
-	if l.logLevel > Warning || l.logLevel == Non {
+	if l.logLevel > LevelWarning || l.logLevel == LevelNon {
 		return
 	}
-	l.warning.Println(args...)
+	l.warning.Output(3, format(args...))
 }
 
 //Error 打印严重的错误日志
 func (l *Logging) Error(args ...interface{}) {
-	if l.logLevel > Err || l.logLevel == Non {
+	if l.logLevel > LevelErr || l.logLevel == LevelNon {
 		return
 	}
-	l.err.Println(args...)
+	l.err.Output(3, format(args...))
 }
 
 //Fatal 打印致命错误日志，并中断程序执行
 func (l *Logging) Fatal(args ...interface{}) {
-	if l.logLevel > Fatal || l.logLevel == Non {
+	if l.logLevel > LevelFatal || l.logLevel == LevelNon {
 		return
 	}
-	l.fatal.Fatalln(args...)
+	l.fatal.Output(3, format(args...))
+	os.Exit(1)
+}
+
+// 日志内容格式化
+func format(v ...interface{}) string {
+	return fmt.Sprintln(v...)
 }
