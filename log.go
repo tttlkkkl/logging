@@ -8,12 +8,12 @@ import (
 	"os"
 )
 
-//Log 供外部使用的全局日志变量
-var Log *Logging
+// 默认的全局日志变量
+var logN Loger
 
 //默认的日志全局日志输出
 func init() {
-	Log = NewLogger()
+	logN = NewLogger(SetCallDepth(3))
 }
 
 // Loger 日志接口 如果要对日志进行扩展都应该遵循这个接口
@@ -62,8 +62,9 @@ const (
 
 // Options 日志选项
 type Options struct {
-	logLevel LogLevel
-	output   io.Writer
+	logLevel  LogLevel
+	output    io.Writer
+	calldepth int
 }
 
 // Option 日志选项设置方法
@@ -83,8 +84,15 @@ func SetOutPut(out io.Writer) Option {
 	}
 }
 
+// SetCallDepth 设置调用深度，以确保打印的日志输出代码所在文件的正确性
+func SetCallDepth(d int) Option {
+	return func(o *Options) {
+		o.calldepth = d
+	}
+}
+
 // NewLogger 获取日志打印实例
-func NewLogger(opt ...Option) *Logging {
+func NewLogger(opt ...Option) Loger {
 	opts := new(Options)
 	for _, o := range opt {
 		o(opts)
@@ -94,6 +102,9 @@ func NewLogger(opt ...Option) *Logging {
 	}
 	if opts.output == nil {
 		opts.output = os.Stdout
+	}
+	if opts.calldepth == 0 {
+		opts.calldepth = 2
 	}
 	log := Logging{
 		debug:   logFormat(opts.output, "DEBUG: "),
@@ -116,7 +127,7 @@ func (l *Logging) Debug(args ...interface{}) {
 	if l.logLevel > LevelDebug || l.logLevel == LevelNon {
 		return
 	}
-	l.debug.Output(3, format(args...))
+	l.debug.Output(l.calldepth, format(args...))
 }
 
 //Info 打印提示信息日志
@@ -124,7 +135,7 @@ func (l *Logging) Info(args ...interface{}) {
 	if l.logLevel > LevelInfo || l.logLevel == LevelNon {
 		return
 	}
-	l.info.Output(3, format(args...))
+	l.info.Output(l.calldepth, format(args...))
 }
 
 //Warning 打印错误日志
@@ -132,7 +143,7 @@ func (l *Logging) Warning(args ...interface{}) {
 	if l.logLevel > LevelWarning || l.logLevel == LevelNon {
 		return
 	}
-	l.warning.Output(3, format(args...))
+	l.warning.Output(l.calldepth, format(args...))
 }
 
 //Error 打印严重的错误日志
@@ -140,7 +151,7 @@ func (l *Logging) Error(args ...interface{}) {
 	if l.logLevel > LevelErr || l.logLevel == LevelNon {
 		return
 	}
-	l.err.Output(3, format(args...))
+	l.err.Output(l.calldepth, format(args...))
 }
 
 //Fatal 打印致命错误日志，并中断程序执行
@@ -148,7 +159,7 @@ func (l *Logging) Fatal(args ...interface{}) {
 	if l.logLevel > LevelFatal || l.logLevel == LevelNon {
 		return
 	}
-	l.fatal.Output(3, format(args...))
+	l.fatal.Output(l.calldepth, format(args...))
 	os.Exit(1)
 }
 
