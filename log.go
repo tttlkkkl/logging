@@ -18,11 +18,11 @@ func init() {
 
 // Loger 日志接口 如果要对日志进行扩展都应该遵循这个接口
 type Loger interface {
-	Debug(args ...interface{})
-	Info(args ...interface{})
-	Warning(args ...interface{})
-	Error(args ...interface{})
-	Fatal(args ...interface{})
+	Debug(msg string, err error, args ...interface{})
+	Info(msg string, err error, args ...interface{})
+	Warning(msg string, err error, args ...interface{})
+	Error(msg string, err error, args ...interface{})
+	Fatal(msg string, err error, args ...interface{})
 }
 
 // Logging 日志打印统一封装
@@ -123,47 +123,53 @@ func logFormat(out io.Writer, prex string) *log.Logger {
 }
 
 //Debug 打印调试日志
-func (l *Logging) Debug(args ...interface{}) {
+func (l *Logging) Debug(msg string, err error, args ...interface{}) {
 	if l.logLevel > LevelDebug || l.logLevel == LevelNon {
 		return
 	}
-	l.debug.Output(l.calldepth, format(args...))
+	l.debug.Output(l.calldepth, format(msg, err, args...))
 }
 
 //Info 打印提示信息日志
-func (l *Logging) Info(args ...interface{}) {
+func (l *Logging) Info(msg string, err error, args ...interface{}) {
 	if l.logLevel > LevelInfo || l.logLevel == LevelNon {
 		return
 	}
-	l.info.Output(l.calldepth, format(args...))
+	l.info.Output(l.calldepth, format(msg, err, args...))
 }
 
 //Warning 打印错误日志
-func (l *Logging) Warning(args ...interface{}) {
+func (l *Logging) Warning(msg string, err error, args ...interface{}) {
 	if l.logLevel > LevelWarning || l.logLevel == LevelNon {
 		return
 	}
-	l.warning.Output(l.calldepth, format(args...))
+	l.warning.Output(l.calldepth, format(msg, err, args...))
 }
 
 //Error 打印严重的错误日志
-func (l *Logging) Error(args ...interface{}) {
+func (l *Logging) Error(msg string, err error, args ...interface{}) {
 	if l.logLevel > LevelErr || l.logLevel == LevelNon {
 		return
 	}
-	l.err.Output(l.calldepth, format(args...))
+	l.err.Output(l.calldepth, format(msg, err, args...))
 }
 
 //Fatal 打印致命错误日志，并中断程序执行
-func (l *Logging) Fatal(args ...interface{}) {
+func (l *Logging) Fatal(msg string, err error, args ...interface{}) {
 	if l.logLevel > LevelFatal || l.logLevel == LevelNon {
 		return
 	}
-	l.fatal.Output(l.calldepth, format(args...))
+	l.fatal.Output(l.calldepth, format(msg, err, args...))
 	os.Exit(1)
 }
 
-// 日志内容格式化
-func format(v ...interface{}) string {
-	return fmt.Sprintln(v...)
+// 日志内容格式化 -- 尽量不要使用过多的反射
+func format(msg string, err error, v ...interface{}) string {
+	if err != nil {
+		msg = msg + "|err:" + err.Error()
+	}
+	if v != nil {
+		msg = msg + "|v:" + fmt.Sprintln(v...)
+	}
+	return msg
 }
