@@ -18,8 +18,8 @@ func init() {
 
 // Loger 日志接口 如果要对日志进行扩展都应该遵循这个接口
 type Loger interface {
-	Debug(msg string, err error, args ...interface{})
-	Info(msg string, err error, args ...interface{})
+	Debug(msg string, args ...interface{})
+	Info(msg string, args ...interface{})
 	Warning(msg string, err error, args ...interface{})
 	Error(msg string, err error, args ...interface{})
 	Fatal(msg string, err error, args ...interface{})
@@ -123,19 +123,19 @@ func logFormat(out io.Writer, prex string) *log.Logger {
 }
 
 //Debug 打印调试日志
-func (l *Logging) Debug(msg string, err error, args ...interface{}) {
+func (l *Logging) Debug(msg string, args ...interface{}) {
 	if l.logLevel > LevelDebug || l.logLevel == LevelNon {
 		return
 	}
-	l.debug.Output(l.calldepth, format(msg, err, args...))
+	l.debug.Output(l.calldepth, format(msg, nil, args...))
 }
 
 //Info 打印提示信息日志
-func (l *Logging) Info(msg string, err error, args ...interface{}) {
+func (l *Logging) Info(msg string, args ...interface{}) {
 	if l.logLevel > LevelInfo || l.logLevel == LevelNon {
 		return
 	}
-	l.info.Output(l.calldepth, format(msg, err, args...))
+	l.info.Output(l.calldepth, format(msg, nil, args...))
 }
 
 //Warning 打印错误日志

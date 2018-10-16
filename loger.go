@@ -1,13 +1,13 @@
 package logging
 
 //Debug 打印调试日志
-func Debug(msg string, err error, args ...interface{}) {
-	logN.Debug(msg, err, args...)
+func Debug(msg string, args ...interface{}) {
+	logN.Debug(msg, args...)
 }
 
 //Info 打印提示信息日志
-func Info(msg string, err error, args ...interface{}) {
-	logN.Info(msg, err, args...)
+func Info(msg string, args ...interface{}) {
+	logN.Info(msg, args...)
 }
 
 //Warning 打印错误日志
