@@ -23,6 +23,7 @@ type Loger interface {
 	Warning(msg string, err error, args ...interface{})
 	Error(msg string, err error, args ...interface{})
 	Fatal(msg string, err error, args ...interface{})
+	Output(calldepth int, s string)
 }
 
 // Logging 日志打印统一封装
@@ -37,6 +38,8 @@ type Logging struct {
 	err *log.Logger
 	//Fatal 致命的错误日志
 	fatal *log.Logger
+	// all 原始输出
+	all *log.Logger
 	Options
 }
 
@@ -96,6 +99,11 @@ func SetDefaultLogger(opt ...Option) {
 	logN = NewLogger(opt...)
 }
 
+// GetDefaultLogger 获取默认日志记录器
+func GetDefaultLogger(opt ...Option) Loger {
+	return logN
+}
+
 // NewLogger 获取日志打印实例
 func NewLogger(opt ...Option) Loger {
 	opts := new(Options)
@@ -117,6 +125,7 @@ func NewLogger(opt ...Option) Loger {
 		warning: logFormat(opts.output, "WARNING: "),
 		err:     logFormat(opts.output, "ERROR: "),
 		fatal:   logFormat(opts.output, "FATAL: "),
+		all:     log.New(opts.output, "", 0),
 		Options: *opts,
 	}
 	return &log
@@ -166,6 +175,14 @@ func (l *Logging) Fatal(msg string, err error, args ...interface{}) {
 	}
 	l.fatal.Output(l.calldepth, format(msg, err, args...))
 	os.Exit(1)
+}
+
+// Output 日志原始输出
+func (l *Logging) Output(calldepth int, s string) {
+	if l.logLevel > LevelFatal || l.logLevel == LevelNon {
+		return
+	}
+	l.all.Output(calldepth, s)
 }
 
 // 日志内容格式化 -- 尽量不要使用过多的反射
