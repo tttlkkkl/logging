@@ -91,6 +91,11 @@ func SetCallDepth(d int) Option {
 	}
 }
 
+// SetDefaultLogger 设置默认的日志记录器
+func SetDefaultLogger(opt ...Option) {
+	logN = NewLogger(opt...)
+}
+
 // NewLogger 获取日志打印实例
 func NewLogger(opt ...Option) Loger {
 	opts := new(Options)
