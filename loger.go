@@ -26,6 +26,6 @@ func Fatal(msg string, err error, args ...interface{}) {
 }
 
 // Output 日志原始输出
-func Output(calldepth int, s string) {
-	logN.Output(calldepth, s)
+func Output(calldepth int, s string) error {
+	return logN.Output(calldepth, s)
 }

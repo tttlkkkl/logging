@@ -23,7 +23,7 @@ type Loger interface {
 	Warning(msg string, err error, args ...interface{})
 	Error(msg string, err error, args ...interface{})
 	Fatal(msg string, err error, args ...interface{})
-	Output(calldepth int, s string)
+	Output(calldepth int, s string) error
 }
 
 // Logging 日志打印统一封装
@@ -178,11 +178,8 @@ func (l *Logging) Fatal(msg string, err error, args ...interface{}) {
 }
 
 // Output 日志原始输出
-func (l *Logging) Output(calldepth int, s string) {
-	if l.logLevel > LevelFatal || l.logLevel == LevelNon {
-		return
-	}
-	l.all.Output(calldepth, s)
+func (l *Logging) Output(calldepth int, s string) error {
+	return l.all.Output(calldepth, s)
 }
 
 // 日志内容格式化 -- 尽量不要使用过多的反射
